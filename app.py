@@ -19,11 +19,11 @@ import random
 st.set_page_config(
     page_title="EMAP - El Mejor Asistente de Precálculo",
     page_icon="📐",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="centered",
+    initial_sidebar_state="auto"
 )
 
-# -------------------- ESTILOS CÁLIDOS Y MATES --------------------
+# -------------------- ESTILOS CÁLIDOS Y MATES + MOBILE FIX --------------------
 st.markdown("""
 <style>
     /* Fondo general cálido */
@@ -45,16 +45,18 @@ st.markdown("""
     
     /* Botones */
     .stButton > button {
-        background-color: #C4784A;
-        color: white;
-        border-radius: 8px;
-        border: none;
-        padding: 0.5rem 1.2rem;
-        font-weight: 600;
+        background-color: #C4784A !important;
+        color: white !important;
+        border-radius: 8px !important;
+        border: none !important;
+        padding: 0.6rem 1.2rem !important;
+        font-weight: 600 !important;
+        width: 100%;
+        max-width: 300px;
     }
     .stButton > button:hover {
-        background-color: #A65F35;
-        color: white;
+        background-color: #A65F35 !important;
+        color: white !important;
     }
     
     /* Cajas de resultado */
@@ -92,17 +94,46 @@ st.markdown("""
         color: #2F4F3A;
     }
     
-    /* Inputs */
-    .stTextInput > div > div > input {
-        background-color: #FFFBF7;
-        border: 1px solid #E8D5C4;
-        border-radius: 6px;
+    /* ===== FIX IMPORTANTE PARA MÓVILES ===== */
+    .stTextInput > div > div > input,
+    .stTextInput input,
+    input[type="text"],
+    textarea {
+        background-color: #FFFBF7 !important;
+        border: 1.5px solid #E8D5C4 !important;
+        border-radius: 8px !important;
+        font-size: 16px !important;
+        padding: 12px !important;
+        -webkit-user-select: text !important;
+        user-select: text !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
     }
     
-    /* Radio y select */
+    .stTextInput, .stTextInput > div, .stTextInput > div > div {
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+    }
+    
     .stRadio > label, .stSelectbox > label {
         color: #5C4033;
         font-weight: 500;
+    }
+    
+    @media (max-width: 768px) {
+        .stApp {
+            padding: 0.5rem !important;
+        }
+        h1 {
+            font-size: 1.6rem !important;
+        }
+        h2, h3 {
+            font-size: 1.3rem !important;
+        }
+        .stButton > button {
+            width: 100% !important;
+            max-width: none !important;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -112,7 +143,6 @@ x = symbols('x')
 transformations = standard_transformations + (implicit_multiplication_application,)
 
 def parsear(expr_str):
-    """Intenta parsear una expresión matemática de forma amigable."""
     try:
         expr_str = expr_str.replace('^', '**').replace('sen', 'sin').replace('tg', 'tan')
         return parse_expr(expr_str, transformations=transformations)
@@ -185,9 +215,6 @@ modulo = st.sidebar.radio(
 st.sidebar.markdown("---")
 st.sidebar.info("Escribe las expresiones usando **x** como variable.\nEjemplos:\n- x**2 + 3*x - 4\n- (x+1)/(x-2)\n- sin(x) + cos(x)")
 
-# ============================================================
-# MÓDULO: INICIO
-# ============================================================
 if modulo == "🏠 Inicio":
     st.header("Bienvenido a EMAP")
     st.markdown("""
@@ -228,9 +255,6 @@ if modulo == "🏠 Inicio":
             y_val = f.subs(x, c)
             caja_resultado(f"En x = {c}", f"f({c}) = {y_val}  →  **{tipo}**")
 
-# ============================================================
-# MÓDULO: ÁLGEBRA Y ECUACIONES
-# ============================================================
 elif modulo == "🔢 Álgebra y Ecuaciones":
     st.header("Álgebra y Ecuaciones")
     
@@ -242,9 +266,10 @@ elif modulo == "🔢 Álgebra y Ecuaciones":
     ])
     
     expr_input = st.text_input("Escribe la expresión o ecuación (usa = para ecuaciones):", 
-                               placeholder="Ej: x**2 - 5*x + 6 = 0   o   x**2 - 9")
+                               placeholder="Ej: x**2 - 5*x + 6 = 0   o   x**2 - 9",
+                               key="alg_input")
     
-    if st.button("Resolver"):
+    if st.button("Resolver", key="alg_btn"):
         if not expr_input.strip():
             caja_error("Debes escribir una expresión o ecuación.")
         else:
@@ -288,17 +313,14 @@ elif modulo == "🔢 Álgebra y Ecuaciones":
             except Exception as e:
                 caja_error(str(e))
 
-# ============================================================
-# MÓDULO: FUNCIONES
-# ============================================================
 elif modulo == "📈 Funciones (Dominio, Rango, Composición)":
     st.header("Análisis de Funciones")
     
-    sub = st.radio("Elige una opción:", ["Dominio de una función", "Composición de funciones", "Evaluar función"])
+    sub = st.radio("Elige una opción:", ["Dominio de una función", "Composición de funciones", "Evaluar función"], key="func_radio")
     
     if sub == "Dominio de una función":
-        f_str = st.text_input("Función f(x):", placeholder="Ej: 1/(x-2)   o   sqrt(x+3)")
-        if st.button("Calcular dominio"):
+        f_str = st.text_input("Función f(x):", placeholder="Ej: 1/(x-2)   o   sqrt(x+3)", key="dom_input")
+        if st.button("Calcular dominio", key="dom_btn"):
             if not f_str:
                 caja_error("Escribe una función.")
             else:
@@ -322,9 +344,9 @@ elif modulo == "📈 Funciones (Dominio, Rango, Composición)":
                     caja_error(str(e))
     
     elif sub == "Composición de funciones":
-        f_str = st.text_input("f(x) =", placeholder="x**2 + 1")
-        g_str = st.text_input("g(x) =", placeholder="x - 3")
-        if st.button("Calcular composición"):
+        f_str = st.text_input("f(x) =", placeholder="x**2 + 1", key="comp_f")
+        g_str = st.text_input("g(x) =", placeholder="x - 3", key="comp_g")
+        if st.button("Calcular composición", key="comp_btn"):
             try:
                 f = parsear(f_str)
                 g = parsear(g_str)
@@ -339,9 +361,9 @@ elif modulo == "📈 Funciones (Dominio, Rango, Composición)":
                 caja_error(str(e))
     
     elif sub == "Evaluar función":
-        f_str = st.text_input("f(x) =", placeholder="x**2 - 4*x + 3")
-        valor = st.text_input("Valor de x:", placeholder="2")
-        if st.button("Evaluar"):
+        f_str = st.text_input("f(x) =", placeholder="x**2 - 4*x + 3", key="eval_f")
+        valor = st.text_input("Valor de x:", placeholder="2", key="eval_x")
+        if st.button("Evaluar", key="eval_btn"):
             try:
                 f = parsear(f_str)
                 val = parsear(valor)
@@ -352,20 +374,17 @@ elif modulo == "📈 Funciones (Dominio, Rango, Composición)":
             except Exception as e:
                 caja_error(str(e))
 
-# ============================================================
-# MÓDULO: GRAFICAR
-# ============================================================
 elif modulo == "📊 Graficar Funciones":
     st.header("Graficar Funciones")
     
-    f_str = st.text_input("Función a graficar f(x):", placeholder="x**3 - 6*x**2 + 9*x + 1")
+    f_str = st.text_input("Función a graficar f(x):", placeholder="x**3 - 6*x**2 + 9*x + 1", key="graf_input")
     col_a, col_b = st.columns(2)
     with col_a:
-        xmin = st.number_input("x mínimo", value=-5.0)
+        xmin = st.number_input("x mínimo", value=-5.0, key="xmin")
     with col_b:
-        xmax = st.number_input("x máximo", value=5.0)
+        xmax = st.number_input("x máximo", value=5.0, key="xmax")
     
-    if st.button("Graficar"):
+    if st.button("Graficar", key="graf_btn"):
         if not f_str:
             caja_error("Escribe una función.")
         else:
@@ -393,20 +412,17 @@ elif modulo == "📊 Graficar Funciones":
                 ax.legend()
                 st.pyplot(fig)
                 
-                caja_info("La gráfica se generó correctamente. Observa intersecciones, crecimiento y comportamiento.")
+                caja_info("La gráfica se generó correctamente.")
             except Exception as e:
                 caja_error(f"No se pudo graficar: {e}")
 
-# ============================================================
-# MÓDULO: LÍMITES
-# ============================================================
 elif modulo == "♾️ Límites":
     st.header("Límites")
     
-    f_str = st.text_input("Función f(x):", placeholder="(x**2 - 1)/(x - 1)")
-    punto = st.text_input("x tiende a:", placeholder="1   o   oo (infinito)")
+    f_str = st.text_input("Función f(x):", placeholder="(x**2 - 1)/(x - 1)", key="lim_f")
+    punto = st.text_input("x tiende a:", placeholder="1   o   oo (infinito)", key="lim_punto")
     
-    if st.button("Calcular límite"):
+    if st.button("Calcular límite", key="lim_btn"):
         if not f_str or not punto:
             caja_error("Completa la función y el punto.")
         else:
@@ -426,22 +442,19 @@ elif modulo == "♾️ Límites":
                 
                 caja_paso(1, f"Función: $f(x) = {latex(f)}$")
                 caja_paso(2, f"Calculamos $\\displaystyle\\lim_{{x \\to {p_latex}}} f(x)$")
-                caja_paso(3, "Aplicamos propiedades de límites / sustitución / racionalización según corresponda")
+                caja_paso(3, "Aplicamos propiedades de límites")
                 caja_resultado("Resultado del límite", mostrar_latex(lim))
                 
             except Exception as e:
                 caja_error(str(e))
 
-# ============================================================
-# MÓDULO: DERIVADAS
-# ============================================================
 elif modulo == "📉 Derivadas":
     st.header("Derivadas")
     
-    f_str = st.text_input("Función f(x):", placeholder="x**3 - 6*x**2 + 9*x + 1")
-    orden = st.selectbox("Orden de la derivada:", [1, 2, 3])
+    f_str = st.text_input("Función f(x):", placeholder="x**3 - 6*x**2 + 9*x + 1", key="der_f")
+    orden = st.selectbox("Orden de la derivada:", [1, 2, 3], key="der_orden")
     
-    if st.button("Derivar"):
+    if st.button("Derivar", key="der_btn"):
         if not f_str:
             caja_error("Escribe una función.")
         else:
@@ -453,32 +466,27 @@ elif modulo == "📉 Derivadas":
                 
                 caja_paso(1, f"Función original: $f(x) = {latex(f)}$")
                 caja_paso(2, f"Aplicamos reglas de derivación ({orden} vez/veces)")
-                
-                caja_info("Reglas utilizadas: regla de la potencia, regla de la suma/resta, regla del producto/cociente y regla de la cadena según corresponda.")
-                
+                caja_info("Reglas utilizadas: potencia, suma/resta, producto/cociente y cadena.")
                 caja_resultado(f"Derivada de orden {orden}", f"$f^{{({orden})}}(x) = {latex(derivada)}$")
                 
             except Exception as e:
                 caja_error(str(e))
 
-# ============================================================
-# MÓDULO: INTEGRALES
-# ============================================================
 elif modulo == "∫ Integrales":
     st.header("Integrales")
     
-    tipo = st.radio("Tipo de integral:", ["Indefinida", "Definida"])
-    f_str = st.text_input("Función f(x):", placeholder="x**2 + 3*x")
+    tipo = st.radio("Tipo de integral:", ["Indefinida", "Definida"], key="int_tipo")
+    f_str = st.text_input("Función f(x):", placeholder="x**2 + 3*x", key="int_f")
     
     a = b = None
     if tipo == "Definida":
         col1, col2 = st.columns(2)
         with col1:
-            a = st.text_input("Límite inferior a:", value="0")
+            a = st.text_input("Límite inferior a:", value="0", key="int_a")
         with col2:
-            b = st.text_input("Límite superior b:", value="2")
+            b = st.text_input("Límite superior b:", value="2", key="int_b")
     
-    if st.button("Integrar"):
+    if st.button("Integrar", key="int_btn"):
         if not f_str:
             caja_error("Escribe una función.")
         else:
@@ -488,7 +496,7 @@ elif modulo == "∫ Integrales":
                 if tipo == "Indefinida":
                     F = integrate(f, x)
                     caja_paso(1, f"Integral indefinida: $\\displaystyle\\int {latex(f)} \\, dx$")
-                    caja_paso(2, "Aplicamos reglas de integración (potencia, suma, etc.)")
+                    caja_paso(2, "Aplicamos reglas de integración")
                     caja_resultado("Resultado", f"${latex(F)} + C$")
                 
                 else:
@@ -496,21 +504,18 @@ elif modulo == "∫ Integrales":
                     b_val = parsear(b)
                     F = integrate(f, (x, a_val, b_val))
                     caja_paso(1, f"$\\displaystyle\\int_{{{latex(a_val)}}}^{{{latex(b_val)}}} {latex(f)} \\, dx$")
-                    caja_paso(2, "Encontramos la antiderivada y evaluamos en los límites")
+                    caja_paso(2, "Evaluamos la antiderivada en los límites")
                     caja_resultado("Resultado", mostrar_latex(F))
             
             except Exception as e:
                 caja_error(str(e))
 
-# ============================================================
-# MÓDULO: MÁXIMOS Y MÍNIMOS
-# ============================================================
 elif modulo == "🎯 Máximos y Mínimos":
     st.header("Máximos y Mínimos Relativos")
     
-    f_str = st.text_input("Función f(x):", placeholder="x**3 - 6*x**2 + 9*x + 1")
+    f_str = st.text_input("Función f(x):", placeholder="x**3 - 6*x**2 + 9*x + 1", key="ext_f")
     
-    if st.button("Analizar extremos"):
+    if st.button("Analizar extremos", key="ext_btn"):
         if not f_str:
             caja_error("Escribe una función.")
         else:
@@ -539,75 +544,32 @@ elif modulo == "🎯 Máximos y Mínimos":
                             elif seg < 0:
                                 tipo = "Máximo relativo"
                             else:
-                                tipo = "Concavidad no determinada (posible punto de inflexión)"
+                                tipo = "Concavidad no determinada"
                             
                             caja_resultado(
                                 f"Punto crítico x = {c}",
-                                f"$f({c}) = {latex(y)}$  →  **{tipo}**  \n(Prueba de la segunda derivada: $f''({c}) = {latex(seg)}$)"
+                                f"$f({c}) = {latex(y)}$  →  **{tipo}**"
                             )
                         except:
-                            caja_resultado(f"Punto x = {c}", "No se pudo clasificar automáticamente.")
+                            caja_resultado(f"Punto x = {c}", "No se pudo clasificar.")
             
             except Exception as e:
                 caja_error(str(e))
 
-# ============================================================
-# MÓDULO: EJERCICIOS DE PRÁCTICA
-# ============================================================
 elif modulo == "📝 Ejercicios de Práctica":
     st.header("Ejercicios de Práctica con Retroalimentación")
     
     ejercicios = [
-        {
-            "pregunta": "Resuelve: x² - 5x + 6 = 0",
-            "respuesta": [2, 3],
-            "explicacion": "Factorizamos (x-2)(x-3)=0 → x=2 o x=3"
-        },
-        {
-            "pregunta": "Factoriza: x² - 9",
-            "respuesta": "(x-3)(x+3)",
-            "explicacion": "Diferencia de cuadrados: a²-b² = (a-b)(a+b)"
-        },
-        {
-            "pregunta": "Calcula el límite: lim (x→2) (x²-4)/(x-2)",
-            "respuesta": 4,
-            "explicacion": "Factorizamos numerador: (x-2)(x+2)/(x-2) = x+2 → cuando x→2 da 4"
-        },
-        {
-            "pregunta": "Deriva: f(x) = 3x⁴ - 2x² + 5",
-            "respuesta": "12x³ - 4x",
-            "explicacion": "Regla de la potencia: n·x^(n-1)"
-        },
-        {
-            "pregunta": "Integra: ∫ (2x + 3) dx",
-            "respuesta": "x² + 3x + C",
-            "explicacion": "Integral de x^n es x^(n+1)/(n+1)"
-        },
-        {
-            "pregunta": "Encuentra f'(x) si f(x) = (x²+1)(x-3)",
-            "respuesta": "3x² - 6x + 1",
-            "explicacion": "Regla del producto: u'v + uv'"
-        },
-        {
-            "pregunta": "¿Cuál es el dominio de f(x) = 1/(x-5)?",
-            "respuesta": "Todos los reales excepto 5",
-            "explicacion": "El denominador no puede ser cero"
-        },
-        {
-            "pregunta": "Evalúa f(2) si f(x) = x³ - 4x",
-            "respuesta": 0,
-            "explicacion": "2³ - 4·2 = 8 - 8 = 0"
-        },
-        {
-            "pregunta": "Simplifica: (x² - 4)/(x+2)",
-            "respuesta": "x-2",
-            "explicacion": "Factorizamos y cancelamos (x+2)"
-        },
-        {
-            "pregunta": "Punto crítico de f(x) = x² - 4x + 1",
-            "respuesta": 2,
-            "explicacion": "f'(x)=2x-4=0 → x=2 (mínimo)"
-        }
+        {"pregunta": "Resuelve: x² - 5x + 6 = 0", "respuesta": [2, 3], "explicacion": "Factorizamos (x-2)(x-3)=0 → x=2 o x=3"},
+        {"pregunta": "Factoriza: x² - 9", "respuesta": "(x-3)(x+3)", "explicacion": "Diferencia de cuadrados"},
+        {"pregunta": "Calcula el límite: lim (x→2) (x²-4)/(x-2)", "respuesta": 4, "explicacion": "Se cancela (x-2) y queda x+2 = 4"},
+        {"pregunta": "Deriva: f(x) = 3x⁴ - 2x² + 5", "respuesta": "12x³ - 4x", "explicacion": "Regla de la potencia"},
+        {"pregunta": "Integra: ∫ (2x + 3) dx", "respuesta": "x² + 3x + C", "explicacion": "Integral de potencia"},
+        {"pregunta": "Encuentra f'(x) si f(x) = (x²+1)(x-3)", "respuesta": "3x² - 6x + 1", "explicacion": "Regla del producto"},
+        {"pregunta": "¿Cuál es el dominio de f(x) = 1/(x-5)?", "respuesta": "Todos los reales excepto 5", "explicacion": "Denominador ≠ 0"},
+        {"pregunta": "Evalúa f(2) si f(x) = x³ - 4x", "respuesta": 0, "explicacion": "8 - 8 = 0"},
+        {"pregunta": "Simplifica: (x² - 4)/(x+2)", "respuesta": "x-2", "explicacion": "Se cancela (x+2)"},
+        {"pregunta": "Punto crítico de f(x) = x² - 4x + 1", "respuesta": 2, "explicacion": "f'=2x-4=0 → x=2"}
     ]
     
     if "ejercicio_actual" not in st.session_state:
@@ -618,11 +580,11 @@ elif modulo == "📝 Ejercicios de Práctica":
     st.subheader("Ejercicio actual")
     st.markdown(f"**{ej['pregunta']}**")
     
-    respuesta_usuario = st.text_input("Tu respuesta:")
+    respuesta_usuario = st.text_input("Tu respuesta:", key="prac_resp")
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Verificar respuesta"):
+        if st.button("Verificar respuesta", key="prac_ver"):
             if not respuesta_usuario.strip():
                 caja_error("Escribe una respuesta.")
             else:
@@ -640,22 +602,19 @@ elif modulo == "📝 Ejercicios de Práctica":
                     st.success("✅ ¡Correcto! Muy bien.")
                     caja_info(ej["explicacion"])
                 else:
-                    st.error("❌ Incorrecto. Revisa la explicación.")
+                    st.error("❌ Incorrecto.")
                     caja_info(f"Respuesta esperada: {ej['respuesta']}\n\n{ej['explicacion']}")
     
     with col2:
-        if st.button("Nuevo ejercicio"):
+        if st.button("Nuevo ejercicio", key="prac_nuevo"):
             st.session_state.ejercicio_actual = random.choice(ejercicios)
             st.rerun()
     
     st.markdown("---")
-    st.subheader("Lista de ejercicios de ejemplo disponibles")
+    st.subheader("Lista de ejercicios de ejemplo")
     for i, e in enumerate(ejercicios, 1):
         st.markdown(f"{i}. {e['pregunta']}")
 
-# ============================================================
-# MÓDULO: ACERCA DE
-# ============================================================
 elif modulo == "ℹ️ Acerca de EMAP":
     st.header("Acerca de EMAP")
     st.markdown("""
@@ -669,23 +628,9 @@ elif modulo == "ℹ️ Acerca de EMAP":
     - Ángel Luis Flores Urizar (2990-26-2483)
     - Elmer Daniel Juárez Aju (2990-26-2481)
     
-    **Herramientas utilizadas:**
-    - Python
-    - Streamlit (interfaz)
-    - SymPy (cálculo simbólico)
-    - Matplotlib (gráficas)
-    
-    **Características:**
-    - Resolución real de problemas (no respuestas memorizadas)
-    - Explicaciones paso a paso
-    - Manejo de errores de entrada
-    - Generador de prácticas con retroalimentación
-    - Interfaz cálida y agradable
-    - 100% gratuito y público
-    
-    **Fecha de entrega:** 25 de octubre de 2026
+    **Herramientas:** Python, Streamlit, SymPy, Matplotlib  
+    **Compatible con móviles**
     """)
 
-# Footer
 st.markdown("---")
 st.caption("EMAP © 2026 • Universidad Mariano Gálvez de Guatemala • Precálculo Sección A")
